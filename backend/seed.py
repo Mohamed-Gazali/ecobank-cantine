@@ -43,7 +43,7 @@ if not compte_restaurant:
         nom="Restaurant",
         numero="restaurant",
         mot_de_passe_hash=auth.hash_mot_de_passe("cantine2026"),
-        agence_id=agences["Agence principale"].id,
+        agence_id=agences["Ecobank Siège"].id,
         role=models.Role.RESTAURANT,
     )
     db.add(compte_restaurant)
