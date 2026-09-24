@@ -15,10 +15,10 @@ export default function Layout({ titre, sousTitre, items }) {
           end={item.end}
           onClick={() => setOuvert(false)}
           className={({ isActive }) =>
-            `block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+            `block px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
               isActive
-                ? "bg-white text-brand"
-                : "text-white/75 hover:bg-white/10"
+                ? "bg-white text-brand shadow-soft"
+                : "text-white/75 hover:bg-white/10 hover:text-white"
             }`
           }
         >
@@ -34,13 +34,13 @@ export default function Layout({ titre, sousTitre, items }) {
       <aside className="hidden md:flex md:flex-col md:w-60 md:py-6 bg-brand">
         <div className="px-5 mb-6">
           <p className="font-display font-semibold text-white">{titre}</p>
-          {sousTitre && <p className="text-xs text-white/60">{sousTitre}</p>}
+          {sousTitre && <p className="text-xs text-white/60 mt-0.5">{sousTitre}</p>}
         </div>
         <NavContenu />
-        <div className="px-3 mt-4">
+        <div className="px-3 mt-4 pt-4 border-t border-white/10">
           <button
             onClick={deconnecter}
-            className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-white/60 hover:bg-white/10"
+            className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-white/60 hover:bg-white/10 hover:text-white/85 transition-colors"
           >
             Déconnexion
           </button>
@@ -48,14 +48,14 @@ export default function Layout({ titre, sousTitre, items }) {
       </aside>
 
       {/* Barre du haut mobile */}
-      <div className="md:hidden flex items-center justify-between px-5 py-4 bg-brand">
+      <div className="md:hidden flex items-center justify-between px-5 py-4 bg-brand shadow-soft">
         <div>
           <p className="font-display font-semibold text-white">{titre}</p>
           {sousTitre && <p className="text-xs text-white/60">{sousTitre}</p>}
         </div>
         <button
           onClick={() => setOuvert(!ouvert)}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white"
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white active:scale-95 transition-transform"
           aria-label="Menu"
         >
           ☰
@@ -63,19 +63,21 @@ export default function Layout({ titre, sousTitre, items }) {
       </div>
 
       {/* Menu déroulant mobile */}
-      {ouvert && (
-        <div className="md:hidden bg-brand-dark py-3">
-          <NavContenu />
-          <div className="px-3 mt-2">
-            <button
-              onClick={deconnecter}
-              className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-white/60 hover:bg-white/10"
-            >
-              Déconnexion
-            </button>
-          </div>
+      <div
+        className={`md:hidden bg-brand-dark overflow-hidden transition-all duration-200 ease-out ${
+          ouvert ? "max-h-96 py-3" : "max-h-0"
+        }`}
+      >
+        <NavContenu />
+        <div className="px-3 mt-2">
+          <button
+            onClick={deconnecter}
+            className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-white/60 hover:bg-white/10"
+          >
+            Déconnexion
+          </button>
         </div>
-      )}
+      </div>
 
       <main className="flex-1 min-w-0">
         <Outlet />

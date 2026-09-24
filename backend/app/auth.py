@@ -12,6 +12,8 @@ from .database import get_db
 from . import models
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-moi-en-production")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY n'est pas configuré")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 12
 

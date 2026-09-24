@@ -17,9 +17,24 @@ const STYLES_STATUT = {
   annulee: "bg-coral/10 text-coral",
 };
 
+function CartePlatSquelette() {
+  return (
+    <div className="rounded-2xl border border-ink/10 bg-white p-4 animate-pulse">
+      <div className="flex justify-between items-start">
+        <div className="space-y-2 flex-1">
+          <div className="h-4 bg-ink/10 rounded w-1/3" />
+          <div className="h-3 bg-ink/5 rounded w-2/3" />
+        </div>
+        <div className="h-4 bg-ink/10 rounded w-10 ml-3" />
+      </div>
+    </div>
+  );
+}
+
 export default function EmployeDashboard() {
   const { employe } = useAuth();
   const [plats, setPlats] = useState([]);
+  const [chargementPlats, setChargementPlats] = useState(true);
   const [quantites, setQuantites] = useState({}); // { plat_id: quantite }
   const [commandeDuJour, setCommandeDuJour] = useState(null);
   const [fenetreOuverte, setFenetreOuverte] = useState(true);
@@ -31,14 +46,20 @@ export default function EmployeDashboard() {
       const auj = res.data.find((c) => {
         const date = new Date(c.cree_le);
         const maintenant = new Date();
-        return date.toDateString() === maintenant.toDateString() && c.statut !== "annulee";
+        return (
+          date.toDateString() === maintenant.toDateString() &&
+          c.statut !== "annulee"
+        );
       });
       setCommandeDuJour(auj || null);
     });
   };
 
   useEffect(() => {
-    api.get("/menu-jour/aujourdhui").then((res) => setPlats(res.data));
+    api
+      .get("/menu-jour/aujourdhui")
+      .then((res) => setPlats(res.data))
+      .finally(() => setChargementPlats(false));
     chargerCommandes();
     // Resynchronise le statut de la commande régulièrement (le restaurant
     // peut la confirmer / livrer pendant que l'employé a l'app ouverte)
@@ -78,12 +99,17 @@ export default function EmployeDashboard() {
     setEnvoi(true);
     try {
       await api.post("/commandes", {
-        lignes: platsChoisis.map((plat_id) => ({ plat_id, quantite: quantites[plat_id] })),
+        lignes: platsChoisis.map((plat_id) => ({
+          plat_id,
+          quantite: quantites[plat_id],
+        })),
       });
       setQuantites({});
       chargerCommandes();
     } catch (err) {
-      setErreur(err.response?.data?.detail || "Impossible de passer la commande");
+      setErreur(
+        err.response?.data?.detail || "Impossible de passer la commande",
+      );
     } finally {
       setEnvoi(false);
     }
@@ -104,7 +130,7 @@ export default function EmployeDashboard() {
 
       {commandeDuJour ? (
         <div className="px-6">
-          <div className="ticket-edge bg-white rounded-ticket border border-ink/10 p-6 shadow-sm max-w-md">
+          <div className="animate-ticket-in ticket-edge bg-white rounded-ticket border border-ink/10 p-6 shadow-card max-w-md">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs uppercase tracking-wide text-ink/40 font-medium">
                 Votre commande
@@ -122,7 +148,9 @@ export default function EmployeDashboard() {
                   <span className="text-ink">
                     {ligne.quantite} × {ligne.plat.nom}
                   </span>
-                  <span className="text-ink/50">{ligne.plat.prix * ligne.quantite} F</span>
+                  <span className="text-ink/50">
+                    {ligne.plat.prix * ligne.quantite} F
+                  </span>
                 </div>
               ))}
             </div>
@@ -132,6 +160,12 @@ export default function EmployeDashboard() {
               <span>Livraison à partir de 13h</span>
             </div>
           </div>
+        </div>
+      ) : chargementPlats ? (
+        <div className="px-6 space-y-3 max-w-md">
+          <CartePlatSquelette />
+          <CartePlatSquelette />
+          <CartePlatSquelette />
         </div>
       ) : (
         <div className="px-6 space-y-3 max-w-md">
@@ -150,9 +184,13 @@ export default function EmployeDashboard() {
                   className="w-full text-left flex justify-between items-start"
                 >
                   <div>
-                    <h3 className="font-display font-semibold text-ink">{plat.nom}</h3>
+                    <h3 className="font-display font-semibold text-ink">
+                      {plat.nom}
+                    </h3>
                     {plat.description && (
-                      <p className="text-ink/50 text-sm mt-0.5">{plat.description}</p>
+                      <p className="text-ink/50 text-sm mt-0.5">
+                        {plat.description}
+                      </p>
                     )}
                   </div>
                   <span className="font-medium text-ink whitespace-nowrap ml-3">
@@ -166,7 +204,7 @@ export default function EmployeDashboard() {
                     <div className="flex items-center gap-2 ml-auto">
                       <button
                         onClick={() => changerQuantite(plat.id, -1)}
-                        className="w-8 h-8 rounded-full bg-white border border-ink/15 text-ink font-medium"
+                        className="w-8 h-8 rounded-full bg-white border border-ink/15 text-ink font-medium active:scale-95 transition-transform"
                       >
                         −
                       </button>
@@ -175,7 +213,7 @@ export default function EmployeDashboard() {
                       </span>
                       <button
                         onClick={() => changerQuantite(plat.id, 1)}
-                        className="w-8 h-8 rounded-full bg-white border border-ink/15 text-ink font-medium"
+                        className="w-8 h-8 rounded-full bg-white border border-ink/15 text-ink font-medium active:scale-95 transition-transform"
                       >
                         +
                       </button>
@@ -194,20 +232,22 @@ export default function EmployeDashboard() {
         </div>
       )}
 
-      {erreur && <p className="text-coral text-sm text-center mt-4 px-6">{erreur}</p>}
+      {erreur && (
+        <p className="text-coral text-sm text-center mt-4 px-6">{erreur}</p>
+      )}
 
       {!commandeDuJour && fenetreOuverte && plats.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 md:left-60 bg-paper border-t border-ink/10 px-6 py-4">
+        <div className="fixed bottom-0 left-0 right-0 md:left-60 bg-paper/95 backdrop-blur-sm border-t border-ink/10 px-6 py-4">
           <button
             onClick={commander}
             disabled={platsChoisis.length === 0 || envoi}
-            className="w-full max-w-md bg-ink text-paper font-medium rounded-xl py-3.5 disabled:opacity-40 flex items-center justify-center gap-2"
+            className="w-full max-w-md bg-ink text-paper font-medium rounded-xl py-3.5 shadow-soft disabled:opacity-40 disabled:shadow-none flex items-center justify-center gap-2 active:scale-[0.99] transition-all"
           >
             {envoi
               ? "Envoi..."
               : platsChoisis.length > 0
-              ? `Confirmer ma commande · ${total} F`
-              : "Choisissez au moins un plat"}
+                ? `Confirmer ma commande · ${total} F`
+                : "Choisissez au moins un plat"}
           </button>
         </div>
       )}
